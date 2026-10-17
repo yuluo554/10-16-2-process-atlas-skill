@@ -2,12 +2,14 @@
 
 Exit codes (D6, locked in tests):
   0 = success
+  1 = selftest failure (D13: a failing self-check is neither a usage error nor
+      a stage not-ready; exit 2 stays reserved for input errors per K1)
   2 = usage / input error (missing file, schema validation failure, unknown subcommand)
-  3 = stage not ready (module exists as skeleton only; no fake empty results)
 
 D11 (M2): the `mine` stage retired its not-ready semantics on landing.
-D12 (M3): the `render` stage retired its not-ready semantics the same way
-(`STAGE_NOT_READY` no longer holds a "render" entry; exit 3 remains for M4).
+D12 (M3): the `render` stage retired its not-ready semantics the same way.
+D13 (M4): `selftest` landed and `STAGE_NOT_READY` is now empty — the exit-3
+"stage not ready" semantic is retired outright (no stage remains skeleton-only).
 """
 
 import argparse
@@ -15,12 +17,10 @@ import json
 import sys
 
 EXIT_OK = 0
+EXIT_SELFTEST_FAIL = 1
 EXIT_USAGE = 2
-EXIT_NOT_READY = 3
 
-STAGE_NOT_READY = {
-    "selftest": "M4",
-}
+STAGE_NOT_READY = {}
 
 
 def _ensure_utf8_stdio():
@@ -66,9 +66,8 @@ def main(argv=None):
     parser = build_parser()
     args, unknown = parser.parse_known_args(argv)
     if unknown or (
-        args.command not in STAGE_NOT_READY
-        and args.command not in ("validate", "mine", "render")
-        and args.command is not None
+        args.command is not None
+        and args.command not in ("validate", "mine", "render", "selftest")
     ):
         print("error: unknown command or arguments: %s" % (unknown or [args.command]), file=sys.stderr)
         parser.print_help(sys.stderr)
@@ -115,13 +114,9 @@ def main(argv=None):
         print("report written: %s" % args.output, file=sys.stderr)
         return EXIT_OK
 
-    if args.command in STAGE_NOT_READY:
-        print(
-            "stage not ready: '%s' is scheduled for milestone %s (skeleton only, no fake output)"
-            % (args.command, STAGE_NOT_READY[args.command]),
-            file=sys.stderr,
-        )
-        return EXIT_NOT_READY
+    if args.command == "selftest":
+        from .selftest import cmd_selftest
+        return cmd_selftest()
 
     parser.print_help(sys.stderr)
     return EXIT_USAGE

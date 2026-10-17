@@ -44,8 +44,11 @@ class TestExitCodeContract:
         out = parser.format_help()
         assert "render" in out
 
-    def test_selftest_is_not_ready(self, capsys):
-        assert cli.main(["selftest"]) == cli.EXIT_NOT_READY
+    def test_selftest_is_wired(self):
+        """D13: selftest landed on M4. The skeleton test loads cli.py by path
+        (relative imports would explode inside main()), so here we only assert
+        the subcommand exists; functional coverage lives in test_selftest.py."""
+        assert "selftest" in cli.build_parser().format_help()
 
     def test_validate_missing_file_is_usage_error(self):
         # Schema checking lands in M4; missing-file handling is wired from M0.
@@ -73,3 +76,17 @@ class TestRenderRetiredNotReady:
     def test_render_missing_file_is_usage_error(self):
         missing = os.path.join(_HERE, "no_such_log.csv")
         assert cli.main(["render", missing, "-o", "out.html"]) == cli.EXIT_USAGE
+
+
+class TestSelftestRetiredNotReady:
+    """D13: `selftest` exited stage-not-ready on M4 landing; exit-3 semantics
+    retired outright — STAGE_NOT_READY is empty and EXIT_NOT_READY is gone."""
+
+    def test_selftest_not_in_stage_not_ready(self):
+        assert "selftest" not in cli.STAGE_NOT_READY
+
+    def test_stage_not_ready_is_empty(self):
+        assert cli.STAGE_NOT_READY == {}
+
+    def test_exit_not_ready_retired(self):
+        assert not hasattr(cli, "EXIT_NOT_READY")
