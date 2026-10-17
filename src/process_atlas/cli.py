@@ -4,9 +4,13 @@ Exit codes (D6, locked in tests):
   0 = success
   2 = usage / input error (missing file, schema validation failure, unknown subcommand)
   3 = stage not ready (module exists as skeleton only; no fake empty results)
+
+D11 (M2): the `mine` stage retired its not-ready semantics on landing
+(`STAGE_NOT_READY` no longer holds a "mine" entry; exit 3 remains for M3/M4).
 """
 
 import argparse
+import json
 import sys
 
 EXIT_OK = 0
@@ -14,7 +18,6 @@ EXIT_USAGE = 2
 EXIT_NOT_READY = 3
 
 STAGE_NOT_READY = {
-    "mine": "M2",
     "render": "M3",
     "selftest": "M4",
 }
@@ -62,7 +65,11 @@ def main(argv=None):
     _ensure_utf8_stdio()
     parser = build_parser()
     args, unknown = parser.parse_known_args(argv)
-    if unknown or (args.command not in STAGE_NOT_READY and args.command not in ("validate",) and args.command is not None):
+    if unknown or (
+        args.command not in STAGE_NOT_READY
+        and args.command not in ("validate", "mine")
+        and args.command is not None
+    ):
         print("error: unknown command or arguments: %s" % (unknown or [args.command]), file=sys.stderr)
         parser.print_help(sys.stderr)
         return EXIT_USAGE
@@ -77,6 +84,20 @@ def main(argv=None):
             return EXIT_USAGE
         from .logio import cmd_validate
         return cmd_validate(args.log)
+
+    if args.command == "mine":
+        import os
+        if not os.path.isfile(args.log):
+            print("error: log file not found: %s" % args.log, file=sys.stderr)
+            return EXIT_USAGE
+        from .mining import load_events, mine_to_json
+        try:
+            events = load_events(args.log)
+        except (ValueError, KeyError, json.JSONDecodeError) as exc:
+            print("error: cannot parse log: %s" % exc, file=sys.stderr)
+            return EXIT_USAGE
+        sys.stdout.write(mine_to_json(events))
+        return EXIT_OK
 
     if args.command in STAGE_NOT_READY:
         print(

@@ -34,9 +34,6 @@ class TestExitCodeContract:
             cli.main(["bogus-command"])
         assert exc.value.code == cli.EXIT_USAGE
 
-    def test_mine_is_not_ready(self, capsys):
-        assert cli.main(["mine", "whatever.csv"]) == cli.EXIT_NOT_READY
-
     def test_render_is_not_ready(self, capsys):
         assert cli.main(["render", "whatever.csv", "-o", "out.html"]) == cli.EXIT_NOT_READY
 
@@ -47,3 +44,14 @@ class TestExitCodeContract:
         # Schema checking lands in M4; missing-file handling is wired from M0.
         missing = os.path.join(_HERE, "no_such_log.csv")
         assert cli.main(["validate", missing]) == cli.EXIT_USAGE
+
+
+class TestMineRetiredNotReady:
+    """D11: `mine` exited stage-not-ready on M2 landing; guard against revival."""
+
+    def test_mine_not_in_stage_not_ready(self):
+        assert "mine" not in cli.STAGE_NOT_READY
+
+    def test_mine_missing_file_is_usage_error(self):
+        missing = os.path.join(_HERE, "no_such_log.csv")
+        assert cli.main(["mine", missing]) == cli.EXIT_USAGE
