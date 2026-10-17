@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>流程发现图报告 · Process Atlas</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0;
+       background: #f7f9fc; color: #24324a; }
+header { padding: 20px 32px; background: #24324a; color: #fff; }
+header h1 { margin: 0 0 4px; font-size: 20px; }
+header .meta { font-size: 12px; opacity: .75; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 32px 64px; }
+section { margin-bottom: 36px; }
+h2 { font-size: 16px; border-left: 4px solid #4a5a77; padding-left: 10px; }
+.stats { display: flex; flex-wrap: wrap; gap: 12px; }
+.stat-card { background: #fff; border: 1px solid #dde4ee; border-radius: 8px;
+             padding: 12px 20px; min-width: 130px; }
+.stat-value { font-size: 22px; font-weight: 600; color: #24324a; }
+.stat-label { font-size: 12px; color: #6b7a94; margin-top: 2px; }
+.graph-panel { background: #fff; border: 1px solid #dde4ee; border-radius: 8px;
+               padding: 16px; overflow-x: auto; }
+.dfg-node { cursor: pointer; }
+.dfg-node rect { transition: fill .15s; }
+.dfg-node:hover rect { fill: #d7e3f4; }
+.dfg-node.dim { opacity: .25; }
+.dfg-edge.dim { opacity: .12; }
+.node-name { font-size: 12px; fill: #24324a; }
+.node-freq { font-size: 10px; fill: #6b7a94; }
+.variant-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 12px; }
+.variant-rank { width: 34px; color: #6b7a94; flex: none; }
+.variant-seq { width: 300px; flex: none; overflow: hidden; text-overflow: ellipsis;
+               white-space: nowrap; }
+.variant-bar-track { flex: 1; background: #e8edf5; border-radius: 4px; height: 14px; }
+.variant-bar { display: block; height: 14px; border-radius: 4px;
+               background: #4a7dc9; min-width: 2px; }
+.variant-count { width: 120px; flex: none; color: #6b7a94; text-align: right; }
+#tooltip { position: fixed; display: none; pointer-events: none; z-index: 10;
+           background: #24324a; color: #fff; font-size: 12px; padding: 8px 10px;
+           border-radius: 6px; max-width: 320px; line-height: 1.5; }
+footer { font-size: 11px; color: #8a94a6; padding: 0 32px 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>流程发现图报告</h1>
+  <div class="meta">确定性单文件报告 · 零外部请求 · build <span id="build-hash"></span></div>
+</header>
+<main>
+<section>
+  <h2>汇总统计</h2>
+  <div class="stats"><div class="stat-card"><div class="stat-value">200</div><div class="stat-label">case 数</div></div><div class="stat-card"><div class="stat-value">8</div><div class="stat-label">活动数</div></div><div class="stat-card"><div class="stat-value">13</div><div class="stat-label">边数</div></div><div class="stat-card"><div class="stat-value">14</div><div class="stat-label">变体数</div></div><div class="stat-card"><div class="stat-value">181078s</div><div class="stat-label">案例时长中位数</div></div><div class="stat-card"><div class="stat-value">351232.2s</div><div class="stat-label">案例时长 P95</div></div></div>
+</section>
+<section>
+  <h2>流程图（DFG）</h2>
+  <div class="graph-panel"><svg id="dfg-svg" viewBox="0 0 1440 260" width="100%" preserveAspectRatio="xMinYMin meet" role="img" aria-label="DFG"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a94a6"/></marker></defs><line class="dfg-edge" data-edge="edge:主管审批&gt;主管审批" x1="280" y1="20" x2="280" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:主管审批&gt;撤回" x1="280" y1="20" x2="1000" y2="120" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:主管审批&gt;财务复核" x1="280" y1="20" x2="520" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:打款&gt;归档" x1="760" y1="20" x2="1000" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:提交申请&gt;主管审批" x1="40" y1="20" x2="280" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:提交申请&gt;撤回" x1="40" y1="20" x2="1000" y2="120" stroke="#8a94a6" stroke-width="4.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:撤回&gt;重新提交" x1="1000" y1="120" x2="1240" y2="20" stroke="#8a94a6" stroke-width="4.6" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:财务复核&gt;打款" x1="520" y1="20" x2="760" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:财务复核&gt;撤回" x1="520" y1="20" x2="1000" y2="120" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:财务复核&gt;驳回" x1="520" y1="20" x2="760" y2="120" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:重新提交&gt;主管审批" x1="1240" y1="20" x2="280" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:驳回&gt;撤回" x1="760" y1="120" x2="1000" y2="120" stroke="#8a94a6" stroke-width="7.6" marker-end="url(#arrow)"/><line class="dfg-edge" data-edge="edge:驳回&gt;重新提交" x1="760" y1="120" x2="1240" y2="20" stroke="#8a94a6" stroke-width="8.0" marker-end="url(#arrow)"/><g class="dfg-node" data-node="主管审批" transform="translate(240,0)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">主管审批</text><text x="40" y="33" text-anchor="middle" class="node-freq">304 次</text><title>主管审批 · 304 次</title></g><g class="dfg-node" data-node="归档" transform="translate(960,0)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">归档</text><text x="40" y="33" text-anchor="middle" class="node-freq">158 次</text><title>归档 · 158 次</title></g><g class="dfg-node" data-node="打款" transform="translate(720,0)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">打款</text><text x="40" y="33" text-anchor="middle" class="node-freq">162 次</text><title>打款 · 162 次</title></g><g class="dfg-node" data-node="提交申请" transform="translate(0,0)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">提交申请</text><text x="40" y="33" text-anchor="middle" class="node-freq">200 次</text><title>提交申请 · 200 次</title></g><g class="dfg-node" data-node="撤回" transform="translate(960,100)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">撤回</text><text x="40" y="33" text-anchor="middle" class="node-freq">44 次</text><title>撤回 · 44 次</title></g><g class="dfg-node" data-node="财务复核" transform="translate(480,0)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">财务复核</text><text x="40" y="33" text-anchor="middle" class="node-freq">239 次</text><title>财务复核 · 239 次</title></g><g class="dfg-node" data-node="重新提交" transform="translate(1200,0)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">重新提交</text><text x="40" y="33" text-anchor="middle" class="node-freq">60 次</text><title>重新提交 · 60 次</title></g><g class="dfg-node" data-node="驳回" transform="translate(720,100)"><rect x="0" y="0" rx="10" ry="10" width="80" height="40" fill="#eef2f7" stroke="#4a5a77" stroke-width="1.5"/><text x="40" y="18" text-anchor="middle" class="node-name">驳回</text><text x="40" y="33" text-anchor="middle" class="node-freq">65 次</text><title>驳回 · 65 次</title></g></svg></div>
+  <p style="font-size:12px;color:#6b7a94">悬停节点/边查看等待统计；点击节点高亮相关变体。</p>
+</section>
+<section>
+  <h2>变体热力条（Top-N，按 case 占比）</h2>
+  <div id="variant-list"><div class="variant-row"><span class="variant-rank">#1</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="1" style="width:39%" title="78 cases · 39%"></span></span><span class="variant-count">78 · 39%</span></div><div class="variant-row"><span class="variant-rank">#2</span><span class="variant-seq">提交申请 → 主管审批 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="2" style="width:14.5%" title="29 cases · 14.5%"></span></span><span class="variant-count">29 · 14.5%</span></div><div class="variant-row"><span class="variant-rank">#3</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 驳回 → 重新提交 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="3" style="width:13%" title="26 cases · 13%"></span></span><span class="variant-count">26 · 13%</span></div><div class="variant-row"><span class="variant-rank">#4</span><span class="variant-seq">提交申请 → 主管审批 → 主管审批 → 财务复核 → 驳回 → 重新提交 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="4" style="width:6%" title="12 cases · 6%"></span></span><span class="variant-count">12 · 6%</span></div><div class="variant-row"><span class="variant-rank">#5</span><span class="variant-seq">提交申请 → 主管审批 → 撤回</span><span class="variant-bar-track"><span class="variant-bar" data-variant="5" style="width:5%" title="10 cases · 5%"></span></span><span class="variant-count">10 · 5%</span></div><div class="variant-row"><span class="variant-rank">#6</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 撤回</span><span class="variant-bar-track"><span class="variant-bar" data-variant="6" style="width:4%" title="8 cases · 4%"></span></span><span class="variant-count">8 · 4%</span></div><div class="variant-row"><span class="variant-rank">#7</span><span class="variant-seq">提交申请 → 主管审批 → 撤回 → 重新提交 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="7" style="width:3%" title="6 cases · 3%"></span></span><span class="variant-count">6 · 3%</span></div><div class="variant-row"><span class="variant-rank">#8</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 驳回 → 重新提交 → 主管审批 → 财务复核 → 驳回 → 撤回</span><span class="variant-bar-track"><span class="variant-bar" data-variant="8" style="width:3%" title="6 cases · 3%"></span></span><span class="variant-count">6 · 3%</span></div><div class="variant-row"><span class="variant-rank">#9</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 驳回 → 撤回</span><span class="variant-bar-track"><span class="variant-bar" data-variant="9" style="width:2.5%" title="5 cases · 2.5%"></span></span><span class="variant-count">5 · 2.5%</span></div><div class="variant-row"><span class="variant-rank">#10</span><span class="variant-seq">提交申请 → 撤回</span><span class="variant-bar-track"><span class="variant-bar" data-variant="10" style="width:2.5%" title="5 cases · 2.5%"></span></span><span class="variant-count">5 · 2.5%</span></div><div class="variant-row"><span class="variant-rank">#11</span><span class="variant-seq">提交申请 → 主管审批 → 主管审批 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="11" style="width:2%" title="4 cases · 2%"></span></span><span class="variant-count">4 · 2%</span></div><div class="variant-row"><span class="variant-rank">#12</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 打款</span><span class="variant-bar-track"><span class="variant-bar" data-variant="12" style="width:2%" title="4 cases · 2%"></span></span><span class="variant-count">4 · 2%</span></div><div class="variant-row"><span class="variant-rank">#13</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 驳回 → 重新提交 → 主管审批 → 财务复核 → 撤回</span><span class="variant-bar-track"><span class="variant-bar" data-variant="13" style="width:2%" title="4 cases · 2%"></span></span><span class="variant-count">4 · 2%</span></div><div class="variant-row"><span class="variant-rank">#14</span><span class="variant-seq">提交申请 → 主管审批 → 财务复核 → 驳回 → 重新提交 → 主管审批 → 财务复核 → 驳回 → 重新提交 → 主管审批 → 财务复核 → 打款 → 归档</span><span class="variant-bar-track"><span class="variant-bar" data-variant="14" style="width:1.5%" title="3 cases · 1.5%"></span></span><span class="variant-count">3 · 1.5%</span></div></div>
+</section>
+</main>
+<footer>所有数字由确定性代码离线计算并内嵌本文件；本页面发起零外部网络请求。</footer>
+<div id="tooltip"></div>
+<script type="application/json" id="pa-data">{"bottlenecks": [{"count": 162, "from": "财务复核", "median_wait_s": 169804.5, "p95_wait_s": 239877.1, "rank": 1, "to": "打款"}, {"count": 54, "from": "驳回", "median_wait_s": 102659.0, "p95_wait_s": 164637.55, "rank": 2, "to": "重新提交"}, {"count": 6, "from": "撤回", "median_wait_s": 36374.5, "p95_wait_s": 46403.25, "rank": 3, "to": "重新提交"}, {"count": 11, "from": "驳回", "median_wait_s": 23340.0, "p95_wait_s": 32654.5, "rank": 4, "to": "撤回"}, {"count": 12, "from": "财务复核", "median_wait_s": 16697.5, "p95_wait_s": 22957.9, "rank": 5, "to": "撤回"}, {"count": 16, "from": "主管审批", "median_wait_s": 9776.0, "p95_wait_s": 13999.25, "rank": 6, "to": "撤回"}, {"count": 49, "from": "主管审批", "median_wait_s": 8326.0, "p95_wait_s": 12934.2, "rank": 7, "to": "主管审批"}, {"count": 239, "from": "主管审批", "median_wait_s": 4020.0, "p95_wait_s": 7020.2, "rank": 8, "to": "财务复核"}, {"count": 65, "from": "财务复核", "median_wait_s": 2983.0, "p95_wait_s": 4997.6, "rank": 9, "to": "驳回"}, {"count": 195, "from": "提交申请", "median_wait_s": 2550.0, "p95_wait_s": 5107.2, "rank": 10, "to": "主管审批"}, {"count": 60, "from": "重新提交", "median_wait_s": 2148.5, "p95_wait_s": 3292.7, "rank": 11, "to": "主管审批"}, {"count": 158, "from": "打款", "median_wait_s": 1861.0, "p95_wait_s": 3457.15, "rank": 12, "to": "归档"}, {"count": 5, "from": "提交申请", "median_wait_s": 0.0, "p95_wait_s": 0.0, "rank": 13, "to": "撤回"}], "buildHash": "2b598e1cc98b9323", "caseCount": 200, "caseStats": {"max_s": 423553, "median_s": 181078.0, "min_s": 0, "p95_s": 351232.2}, "edges": [{"count": 49, "from": "主管审批", "to": "主管审批"}, {"count": 16, "from": "主管审批", "to": "撤回"}, {"count": 239, "from": "主管审批", "to": "财务复核"}, {"count": 158, "from": "打款", "to": "归档"}, {"count": 195, "from": "提交申请", "to": "主管审批"}, {"count": 5, "from": "提交申请", "to": "撤回"}, {"count": 6, "from": "撤回", "to": "重新提交"}, {"count": 162, "from": "财务复核", "to": "打款"}, {"count": 12, "from": "财务复核", "to": "撤回"}, {"count": 65, "from": "财务复核", "to": "驳回"}, {"count": 60, "from": "重新提交", "to": "主管审批"}, {"count": 11, "from": "驳回", "to": "撤回"}, {"count": 54, "from": "驳回", "to": "重新提交"}], "layout": {"主管审批": {"layer": 1, "x": 240, "y": 0}, "归档": {"layer": 4, "x": 960, "y": 0}, "打款": {"layer": 3, "x": 720, "y": 0}, "提交申请": {"layer": 0, "x": 0, "y": 0}, "撤回": {"layer": 4, "x": 960, "y": 100}, "财务复核": {"layer": 2, "x": 480, "y": 0}, "重新提交": {"layer": 5, "x": 1200, "y": 0}, "驳回": {"layer": 3, "x": 720, "y": 100}}, "nodeFreq": {"主管审批": 304, "归档": 158, "打款": 162, "提交申请": 200, "撤回": 44, "财务复核": 239, "重新提交": 60, "驳回": 65}, "nodes": ["主管审批", "归档", "打款", "提交申请", "撤回", "财务复核", "重新提交", "驳回"], "variants": [{"count": 78, "rank": 1, "ratio": 0.39, "seq": ["提交申请", "主管审批", "财务复核", "打款", "归档"]}, {"count": 29, "rank": 2, "ratio": 0.145, "seq": ["提交申请", "主管审批", "主管审批", "财务复核", "打款", "归档"]}, {"count": 26, "rank": 3, "ratio": 0.13, "seq": ["提交申请", "主管审批", "财务复核", "驳回", "重新提交", "主管审批", "财务复核", "打款", "归档"]}, {"count": 12, "rank": 4, "ratio": 0.06, "seq": ["提交申请", "主管审批", "主管审批", "财务复核", "驳回", "重新提交", "主管审批", "财务复核", "打款", "归档"]}, {"count": 10, "rank": 5, "ratio": 0.05, "seq": ["提交申请", "主管审批", "撤回"]}, {"count": 8, "rank": 6, "ratio": 0.04, "seq": ["提交申请", "主管审批", "财务复核", "撤回"]}, {"count": 6, "rank": 7, "ratio": 0.03, "seq": ["提交申请", "主管审批", "撤回", "重新提交", "主管审批", "财务复核", "打款", "归档"]}, {"count": 6, "rank": 8, "ratio": 0.03, "seq": ["提交申请", "主管审批", "财务复核", "驳回", "重新提交", "主管审批", "财务复核", "驳回", "撤回"]}, {"count": 5, "rank": 9, "ratio": 0.025, "seq": ["提交申请", "主管审批", "财务复核", "驳回", "撤回"]}, {"count": 5, "rank": 10, "ratio": 0.025, "seq": ["提交申请", "撤回"]}, {"count": 4, "rank": 11, "ratio": 0.02, "seq": ["提交申请", "主管审批", "主管审批", "主管审批", "财务复核", "打款", "归档"]}, {"count": 4, "rank": 12, "ratio": 0.02, "seq": ["提交申请", "主管审批", "财务复核", "打款"]}, {"count": 4, "rank": 13, "ratio": 0.02, "seq": ["提交申请", "主管审批", "财务复核", "驳回", "重新提交", "主管审批", "财务复核", "撤回"]}, {"count": 3, "rank": 14, "ratio": 0.015, "seq": ["提交申请", "主管审批", "财务复核", "驳回", "重新提交", "主管审批", "财务复核", "驳回", "重新提交", "主管审批", "财务复核", "打款", "归档"]}]}</script>
+<script>
+(function () {
+  "use strict";
+  var data = JSON.parse(document.getElementById("pa-data").textContent);
+  document.getElementById("build-hash").textContent = data.buildHash;
+  var tip = document.getElementById("tooltip");
+
+  function edgeInfoRaw(from, to) {
+    for (var i = 0; i < data.edges.length; i++) {
+      var e = data.edges[i];
+      if (e.from === from && e.to === to) { return e; }
+    }
+    return null;
+  }
+  function bottleneckOf(from, to) {
+    for (var i = 0; i < data.bottlenecks.length; i++) {
+      var b = data.bottlenecks[i];
+      if (b.from === from && b.to === to) { return b; }
+    }
+    return null;
+  }
+  function variantsTouching(activity) {
+    var hits = [];
+    for (var i = 0; i < data.variants.length; i++) {
+      var v = data.variants[i];
+      for (var j = 0; j < v.seq.length; j++) {
+        if (v.seq[j] === activity) { hits.push(v); break; }
+      }
+    }
+    return hits;
+  }
+
+  function showTip(html, x, y) {
+    tip.innerHTML = html;
+    tip.style.display = "block";
+    tip.style.left = (x + 14) + "px";
+    tip.style.top = (y + 14) + "px";
+  }
+  function hideTip() { tip.style.display = "none"; }
+
+  var nodes = document.querySelectorAll(".dfg-node");
+  var edges = document.querySelectorAll(".dfg-edge");
+
+  nodes.forEach(function (n) {
+    var name = n.getAttribute("data-node");
+    n.addEventListener("mousemove", function (ev) {
+      var freq = data.nodeFreq[name];
+      var hits = variantsTouching(name);
+      var lines = ["<b>" + name + "</b> · " + freq + " 次",
+                   "相关变体 " + hits.length + " 个"];
+      showTip(lines.join("<br/>"), ev.clientX, ev.clientY);
+    });
+    n.addEventListener("mouseleave", hideTip);
+    n.addEventListener("click", function () {
+      var active = n.classList.contains("active");
+      nodes.forEach(function (m) { m.classList.remove("dim", "active"); });
+      edges.forEach(function (m) { m.classList.remove("dim"); });
+      document.querySelectorAll(".variant-bar").forEach(function (b) {
+        b.style.outline = "";
+      });
+      if (active) { return; }
+      n.classList.add("active");
+      var hits = variantsTouching(name);
+      var keep = {};
+      hits.forEach(function (v) {
+        for (var j = 0; j < v.seq.length - 1; j++) {
+          keep[v.seq[j] + ">" + v.seq[j + 1]] = 1;
+        }
+      });
+      nodes.forEach(function (m) {
+        var nm = m.getAttribute("data-node");
+        var inHit = hits.some(function (v) { return v.seq.indexOf(nm) !== -1; });
+        if (!inHit) { m.classList.add("dim"); }
+      });
+      edges.forEach(function (m) {
+        var key = m.getAttribute("data-edge").slice(5);
+        if (!keep[key]) { m.classList.add("dim"); }
+      });
+      hits.forEach(function (v) {
+        var bar = document.querySelector('.variant-bar[data-variant="' + v.rank + '"]');
+        if (bar) { bar.style.outline = "2px solid #24324a"; }
+      });
+    });
+  });
+
+  edges.forEach(function (m) {
+    m.addEventListener("mousemove", function (ev) {
+      var key = m.getAttribute("data-edge").slice(5);
+      var sep = key.indexOf(">");
+      var from = key.slice(0, sep), to = key.slice(sep + 1);
+      var e = edgeInfoRaw(from, to);
+      if (!e) { return; }
+      var b = bottleneckOf(from, to);
+      var lines = ["<b>" + from + " → " + to + "</b>",
+                   "频次 " + e.count];
+      if (b) {
+        lines.push("等待中位数 " + b.median_wait_s + "s · P95 " + b.p95_wait_s + "s");
+      }
+      showTip(lines.join("<br/>"), ev.clientX, ev.clientY);
+    });
+    m.addEventListener("mouseleave", hideTip);
+  });
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,8 @@ import sys
 import pytest
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_SRC = os.path.join(_HERE, "..", "src")
+_REPO = os.path.dirname(_HERE)
+_SRC = os.path.join(_REPO, "src")
 
 
 def _load_cli():
@@ -34,8 +35,14 @@ class TestExitCodeContract:
             cli.main(["bogus-command"])
         assert exc.value.code == cli.EXIT_USAGE
 
-    def test_render_is_not_ready(self, capsys):
-        assert cli.main(["render", "whatever.csv", "-o", "out.html"]) == cli.EXIT_NOT_READY
+    def test_render_is_wired(self):
+        """D12: render retired stage-not-ready on M3 landing. The skeleton test
+        loads cli.py by path (relative imports would explode inside main()), so
+        here we only assert the subcommand exists; functional render coverage
+        lives in test_render.py / test_mining-style package imports."""
+        parser = cli.build_parser()
+        out = parser.format_help()
+        assert "render" in out
 
     def test_selftest_is_not_ready(self, capsys):
         assert cli.main(["selftest"]) == cli.EXIT_NOT_READY
@@ -55,3 +62,14 @@ class TestMineRetiredNotReady:
     def test_mine_missing_file_is_usage_error(self):
         missing = os.path.join(_HERE, "no_such_log.csv")
         assert cli.main(["mine", missing]) == cli.EXIT_USAGE
+
+
+class TestRenderRetiredNotReady:
+    """D12: `render` exited stage-not-ready on M3 landing; guard against revival."""
+
+    def test_render_not_in_stage_not_ready(self):
+        assert "render" not in cli.STAGE_NOT_READY
+
+    def test_render_missing_file_is_usage_error(self):
+        missing = os.path.join(_HERE, "no_such_log.csv")
+        assert cli.main(["render", missing, "-o", "out.html"]) == cli.EXIT_USAGE
