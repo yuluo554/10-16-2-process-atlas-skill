@@ -1,0 +1,15 @@
+{
+  "counts": {
+    "cases": 200,
+    "edges": 13,
+    "events": 1232,
+    "variants": 14
+  },
+  "scenario": "报销审批（虚构）",
+  "seed": 20261017,
+  "sha256": {
+    "events.csv": "071aa3c3335bc438dbc0a4b8c6b75f52586cadc3bb9abb72c64598b57b4ef07b",
+    "events_variants.json": "c21cf053e6b50bb02ab9577d5f0726239f9044671dbf577cc2fb1ed6da6a3fba",
+    "truth.json": "eb1f9051a90d3f9240a2adc4a9b823f639902bf6f9aa69eb39fb47bb577623fb"
+  }
+}
