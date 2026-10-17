@@ -16,9 +16,10 @@
 | run id | 触发 | 结果 |
 | --- | --- | --- |
 | 39000360506 | push main（首推） | ✅ 四矩阵全绿：ubuntu×3.8（18s）/ ubuntu×3.12（11s）/ windows×3.12（25s）/ windows×3.8（1m4s） |
+| 39000459307 | push tag v0.1.0 | ✅ 四矩阵全绿（1m15s） |
+| 39000665890 | push main（M6 收尾回写 commit 9ec8639） | ✅ 四矩阵全绿（1m12s） |
 
-- 首推 1 次 = run 1 个，对账通过；首轮即绿，D8 预留的诊断预算未动用（预置≠跑过 → 本轮已实跑验证）。
-- tag push（v0.1.0）未触发 CI（workflow 无 tag 触发器），不计入对账。
+- 对账：push 3 次（main 首推 + tag v0.1.0 + M6 收尾）= run 3 个，全部成功；首轮即绿，D8 预留的诊断预算未动用（预置≠跑过 → 本轮已实跑验证）。
 - 注：CI 有 Node.js 20 deprecation 警告（actions/checkout@v4、setup-python@v5），非失败，留待后续升级 action 版本。
 
 ## 网络通道备注（本机环境坑追加）
