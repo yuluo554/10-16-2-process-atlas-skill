@@ -45,4 +45,4 @@
 | M3 渲染 | 单文件 HTML：DFG 网络图 + 变体热力条，确定性布局，零 CDN | 同日志两次渲染坐标逐像素一致 ✅ 2026-10-17 |
 | M4 校验基准 | schema 校验 + 断言套件（频次重算/变体核对/瓶颈比对） | 一条命令全绿 ✅ 2026-10-17 |
 | M5 交付 | SKILL.md 主入口 + README + 示例 HTML 产物 | 四栏评分自评表填写完毕 ✅ 2026-10-17（自评 88/100，见 plan/自评表.md） |
-| M6 发布 | git tag + GitHub Release（附 HTML 产物与基准数据）+ 发布留档三件套；发布 GitHub 公开仓库 | M6 DoD = tag、Release 产物齐全、留档三件套入库 |
+| M6 发布 | git tag + GitHub Release（附 HTML 产物与基准数据）+ 发布留档三件套；发布 GitHub 公开仓库 | M6 DoD = tag、Release 产物齐全、留档三件套入库 ✅ 2026-10-17（github.com/yuluo554/10-16-2-process-atlas-skill public；tag v0.1.0 + Release 5 附件真下载复核逐字节一致；CI 四矩阵全绿 run 39000360506；留档见 plan/RELEASE-M6.md） |
