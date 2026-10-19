@@ -10,7 +10,7 @@
 
 ## 使用方式
 
-要求 Python ≥ 3.8（仅标准库；跑测试需 `pip install pytest` 或 `pip install -e .[dev]`）。以下命令均从仓库根执行（Windows 用 `py` 而非 `python`；`PYTHONPATH=src` 指向源码）。另一种跑法是先 `pip install -e .`，之后 `PYTHONPATH` 与 `-m` 前缀可省略（`process-atlas validate …`）。
+要求 Python ≥ 3.12（仅标准库；跑测试需 `pip install pytest` 或 `pip install -e .[dev]`）。以下命令均从仓库根执行（Windows 用 `py` 而非 `python`；`PYTHONPATH=src` 指向源码）。另一种跑法是先 `pip install -e .`，之后 `PYTHONPATH` 与 `-m` 前缀可省略（`process-atlas validate …`）。
 
 ```bash
 # 1. 校验日志（逐行报错，全部错误一次报出）
@@ -26,7 +26,7 @@ PYTHONPATH=src py -X utf8 -m process_atlas.cli render data/synthetic/events.csv 
 PYTHONPATH=src py -X utf8 -m process_atlas.cli selftest
 
 # 全量测试套件
-PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 py -3.8 -X utf8 -m pytest tests/ -q
+PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 py -3.12 -X utf8 -m pytest tests/ -q
 ```
 
 退出码契约：**0** 成功；**1** 仅 `selftest` 失败（自检发现缺陷）；**2** 用法与输入错误（缺文件、schema 校验失败、未知子命令）。没有退出码 3（历史"阶段未就绪"语义已退役）。
@@ -76,9 +76,9 @@ plan/                    题目文档、架构、里程碑、决策记录、自�
 ## 已知环境问题
 
 - **Windows 用 `py` 不用 `python`**：后者常是微软商店占位符。一律 `py -X utf8`（UTF-8 模式防 cp936 控制台编码坑）。
-- **双解释器**：本仓库在 Python 3.8 与 3.12 双通道下全量测试通过；`py -3.8` / `py -3.12` 可显式指定。
+- **解释器通道**：要求 Python ≥ 3.12（`py -3.12` 可显式指定）。3.8 通道已在二次迭代后退役——PEP 639 的 SPDX `license` 字段要求 setuptools ≥ 77，而 setuptools 77+ 不再支持 3.8；两者只能二选一，故 floor 与 build-system 下限同步上抬。
 - **Git Bash 的 `/tmp`**：Windows 原生 Python 看不见 Git Bash 的 `/tmp`，临时文件请用系统临时目录。
-- **源码直跑 vs 安装跑**：`PYTHONPATH=src` 是源码直跑口径；`pip install -e .` 后 `process-atlas` 命令等价。首期交付形态为源码包（clone 即用），不承诺 wheel 安装面。
+- **源码直跑 vs 安装跑**：`PYTHONPATH=src` 是源码直跑口径；`pip install -e .` 后 `process-atlas` 命令等价。首期交付形态为源码包（clone 即用），**不承诺 wheel 安装面**——这是显式契约而非待修缺陷：`data/synthetic/` 位于包外且刻意不打进 wheel，因此非 editable 安装后 `validate` 应以 **exit 2**（log file not found）、`selftest` 应以 **exit 1**（`files_present: missing required file(s)`）失败，而非静默算错。该行为由 `tests/test_install_surface.py` 守门（构建 wheel → 装进临时 venv → 断言上面两条退出码）；需要网络与约 1–2 分钟，默认 `pytest` **不收集**该文件，显式触发：`PROCESS_ATLAS_INSTALL_SURFACE=1 python -m pytest tests/test_install_surface.py -q`。
 
 ## 边界与 roadmap（首期不做）
 

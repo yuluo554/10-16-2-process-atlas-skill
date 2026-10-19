@@ -1,13 +1,15 @@
 [build-system]
-requires = ["setuptools>=61"]
+# PEP 639 SPDX `license = "..."` needs setuptools >= 77, which is >= 3.9 only,
+# so build-system floor and requires-python are raised together (DEC1 = B).
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "process-atlas"
-version = "0.1.0"
+version = "0.2.0"
 description = "Event log -> deterministic process discovery (DFG, variants, bottlenecks) rendered as a zero-CDN single-file HTML"
-requires-python = ">=3.8"
-license = {text = "MIT"}
+requires-python = ">=3.12"
+license = "MIT"
 dependencies = []
 
 [project.scripts]
@@ -21,3 +23,6 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "install_surface: opt-in wheel-install contract check (needs network + a scratch venv; set PROCESS_ATLAS_INSTALL_SURFACE=1)",
+]
